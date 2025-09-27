@@ -36,8 +36,17 @@
       try {
         const url = new URL(a.href, location.origin);
         const vid = url.searchParams.get('v');
-        const title = (a.title || (a.querySelector('#video-title') ? a.querySelector('#video-title').innerText : a.getAttribute('aria-label') || '')).trim();
-        return { videoId: vid, title };
+        const renderer = a.closest('ytd-compact-video-renderer');
+        let title = '';
+        if (renderer) {
+          const titleEl = renderer.querySelector('#video-title');
+          if (titleEl) title = titleEl.textContent;
+        }
+        if (!title) title = a.title;
+        if (!title) title = a.getAttribute('aria-label');
+        if (!title) title = a.textContent;
+
+        return { videoId: vid, title: (title || '').trim() };
       } catch(e){ return null; }
     }).filter(Boolean);
     return recs;
