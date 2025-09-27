@@ -18,6 +18,16 @@
     return document.title.replace(' - YouTube', '').trim();
   }
 
+  function getVideoDescription() {
+    // Selectors for various YouTube UI versions
+    const el = document.querySelector('#description .content, #description-text, ytd-text-inline-expander, #description > yt-formatted-string');
+    if (el) return el.innerText.trim();
+    // Fallback for newer UIs that use a dedicated expander component
+    const expander = document.querySelector('ytd-expandable-video-description-body-renderer');
+    if (expander) return expander.innerText.trim();
+    return '';
+  }
+
   function collectRecommendations(limit = 40) {
     // Try to capture the common recommended nodes; fallback to anchors linking to /watch?v=
     const anchors = Array.from(document.querySelectorAll('ytd-compact-video-renderer a#thumbnail, ytd-compact-video-renderer a#video-title, a[href^="/watch?v="]'));
@@ -73,6 +83,11 @@
     attachVideoListeners(videoId);
 
     setTimeout(() => {
+      const description = getVideoDescription();
+      if (description) {
+        sendEvent('video_description', { videoId, description });
+      }
+
       const recs = collectRecommendations();
       if (recs.length) sendEvent('recs_snapshot', { videoId, recs });
 
